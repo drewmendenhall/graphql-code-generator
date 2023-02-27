@@ -10,7 +10,6 @@ import {
   Types,
 } from '@graphql-codegen/plugin-helpers';
 import { cosmiconfig, defaultLoaders } from 'cosmiconfig';
-import { TypeScriptLoader } from 'cosmiconfig-typescript-loader';
 import { GraphQLSchema, GraphQLSchemaExtensions, print } from 'graphql';
 import { GraphQLConfig } from 'graphql-config';
 import { env } from 'string-env-interpolation';
@@ -50,7 +49,7 @@ export function generateSearchPlaces(moduleName: string) {
 }
 
 function customLoader(ext: 'json' | 'yaml' | 'js' | 'ts') {
-  function loader(filepath: string, content: string) {
+  async function loader(filepath: string, content: string) {
     if (typeof process !== 'undefined' && 'env' in process) {
       content = env(content);
     }
@@ -74,6 +73,8 @@ function customLoader(ext: 'json' | 'yaml' | 'js' | 'ts') {
     }
 
     if (ext === 'ts') {
+      const { TypeScriptLoader } = await import('cosmiconfig-typescript-loader')
+
       // #8437: conflict with `graphql-config` also using TypeScriptLoader(), causing a double `ts-node` register.
       const tsLoader = TypeScriptLoader({ transpileOnly: true });
       return tsLoader(filepath, content);
